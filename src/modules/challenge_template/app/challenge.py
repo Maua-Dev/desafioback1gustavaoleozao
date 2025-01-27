@@ -3,4 +3,8 @@ from src.shared.helpers.external_interfaces.http_lambda_requests import LambdaHt
 
 
 def lambda_handler(event, context):
+
+
+
+
     pass
