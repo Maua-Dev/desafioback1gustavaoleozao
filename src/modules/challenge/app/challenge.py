@@ -1,7 +1,9 @@
 import os
-
 from botocore.exceptions import PartialCredentialsError, NoCredentialsError
-
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
 import boto3
 
 def lambda_handler(event, context):
@@ -13,35 +15,38 @@ def lambda_handler(event, context):
         ses_client = boto3.client('ses', region_name=os.environ.get("AWS_REGION"))
 
         s3_bucket_name = 'challenge-storage-devcommunitymaua'
+        file_key = 'kick buttowski.png'
 
-        response = s3_client.list_objects_v2(Bucket=s3_bucket_name)
+        file_response = s3_client.get_object(Bucket=s3_bucket_name, Key=file_key)
+        file_content = file_response['Body'].read()
 
-        latest_file = max(response['Contents'], key=lambda x: x['LastModified'])
-        latest_file_key = latest_file['Key']
+        sender_email = 'devmaua@gmail.com'
+        recipient_email = 'mcapaldo.devmaua@gmail.com'
+        subject = "Desafio Hardcore"
+        body_text = "Deasfio Leo e Gustavo"
 
-        file_response = s3_client.get_object(Bucket=s3_bucket_name, Key=latest_file_key)
-        file_content = file_response['Body'].read().decode('utf-8')
+        message = MIMEMultipart()
+        message['Subject'] = subject
+        message['From'] = sender_email
+        message['To'] = recipient_email
 
-        ses_client.send_email(
-            Source='lseixas.iorio@gmail.com',
-            Destination={
-                'ToAddresses': ['lseixas.iorio@gmail.com'],
-            },
-            Message={
-                'Subject': {
-                    'Data': "subject",
-                },
-                'Body': {
-                    'Text': {
-                        'Data': f"Content of the latest file ({latest_file_key}):\n\n{file_content}",
-                    },
-                },
-            }
+        message.attach(MIMEText(body_text, 'plain'))
+
+        mime_base = MIMEBase('image', 'png')
+        mime_base.set_payload(file_content)
+        encoders.encode_base64(mime_base)
+        mime_base.add_header('Content-Disposition', f'attachment; filename="{file_key}"')
+        message.attach(mime_base)
+
+        response = ses_client.send_raw_email(
+            Source=sender_email,
+            Destinations=[recipient_email, 'lseixas.iorio@gmail.com'],
+            RawMessage={'Data': message.as_string()}
         )
 
         return {
             "statusCode": 200,
-            "body": f"Email sent successfully with content of file: {latest_file_key}"
+            "body": "Email sent successfully"
         }
 
     except NoCredentialsError:
@@ -62,4 +67,3 @@ def lambda_handler(event, context):
             "statusCode": 500,
             "body": "Failed to process files or send email"
         }
-
