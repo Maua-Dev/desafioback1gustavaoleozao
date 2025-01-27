@@ -20,7 +20,7 @@ def lambda_handler(event, context):
         file_response = s3_client.get_object(Bucket=s3_bucket_name, Key=file_key)
         file_content = file_response['Body'].read()
 
-        sender_email = 'devmaua@gmail.com'
+        sender_email = 'contato@devmaua.com'
         recipient_email = 'mcapaldo.devmaua@gmail.com'
         subject = "Desafio Hardcore"
         body_text = "Deasfio Leo e Gustavo"
