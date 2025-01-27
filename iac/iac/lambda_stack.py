@@ -39,7 +39,7 @@ class LambdaStack(Construct):
 
 
         self.challenge_function = self.create_lambda_api_gateway_integration(
-            module_name="challenge_template",
+            module_name="challenge",
             method="GET",
             mss_student_api_resource=api_gateway_resource,
             environment_variables=environment_variables
